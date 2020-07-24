@@ -6,24 +6,25 @@ email_two = open("email_two.txt", "r").read()
 email_three = open("email_three.txt", "r").read()
 email_four = open("email_four.txt", "r").read()
 
-def censor_text(text, email):
+''' The following method takes in two arguments. The first is the text that needs to be
+    censored and the second being the email that needs censoring.'''
+def censor_text(c_text, email):
+    # These letters are for generating random letters to replace the c_text that needs to be censor
     letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
      'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-    upper = [True, False]
-    email_text = email.read()
+    # A variable to store the replacement for c_text
+    new_text = ""
+    # A for loop to iterate to the length of c_text
+    for i in range(len(c_text)):
+        # A letter is chosen at random each time the for loop is ran and added to new_text
+        new_text += random.choice(letters).upper()
 
-    while text in email:
-        index = email_text.find(text)
-        
-        new_text = ""
-        for i in range(len(text)):
-            if random.choice(upper):
-                new_text.append(random.choice(letters).upper())
-            else:
-                new_text.append(random.choice(letters))
-
-        email_text = email_text[:index] + new_text + email_text[index + len(text):]
-    return email_text
-
-print(censor_text("learning algorithms", email_one))
+    # As long as c_text is still in the email the while loop needs to continue
+    while c_text in email:
+        # First find the starting index of the found location of c_text
+        index = email.find(c_text)
+        # Than email needs to be changed to remove c_text and replace it with the new_text
+        email = email[:index] + new_text + email[index + len(c_text) :]
+    # Fianlly return the email after the while loop has found all occurances of c_text        
+    return email
 
