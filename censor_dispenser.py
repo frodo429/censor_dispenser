@@ -7,8 +7,8 @@ email_three = open("email_three.txt", "r").read()
 email_four = open("email_four.txt", "r").read()
 
 ''' The following method takes in two arguments. The first is the text that needs to be
-    censored and the second being the email that needs censoring.'''
-def censor_text(c_text, email):
+    censored and the second being the email that needs censoring. Than returns the new text.'''
+def censor_term(c_text, email):
     # These letters are for generating random letters to replace the c_text that needs to be censor
     letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
      'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
@@ -28,3 +28,13 @@ def censor_text(c_text, email):
     # Fianlly return the email after the while loop has found all occurances of c_text        
     return email
 
+''' The following function censors a list of terms from the given text. paramters are the terms and
+    the text that needs to be censored. And returns the new text.'''
+def cesor_terms(terms, email):
+    for t in terms:
+
+
+
+""" TESTING """
+
+print(censor_term("learning algorithms", email_one))
