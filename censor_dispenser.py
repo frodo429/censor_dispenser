@@ -10,23 +10,15 @@ email_four = open("email_four.txt", "r").read()
 
 ''' The following method takes in two arguments. The first is the text that needs to be
     censored and the second being the email that needs censoring. Than returns the new text.'''
-def censor_this(c_text, email, skip = 0):
-    # These letters are for generating random letters to replace the c_text that needs to be censor
-    letters = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '{', '}', '[', ']', '<',
-     '>', 'F', '7', 'U', '8', '9', 'K', '-', 'C']
-    # A variable to store the replacement for c_text
-    new_text = ""
+def censor_this(c_text, email):
 
-    # A for loop to iterate to the length of c_text
-    for i in range(len(c_text)):
-            # A letter is chosen at random each time the for loop is ran and added to new_text
-            new_text += random.choice(letters).upper()
+    scrable_text = scrable(c_text)
 
     # for the really sort words that might be found in other bigger words we need to make
     # adjustments to avoid this
     if len(c_text) <= 4:
         c_text += ' '
-        new_text += ' '
+        scrable_text += ' '
 
     # As long as c_text is still in the email the while loop needs to continue
     while c_text in email or c_text.title() in email:
@@ -36,20 +28,25 @@ def censor_this(c_text, email, skip = 0):
         elif c_text.title() in email:
             index = email.find(c_text.title())
         
-        # Than email needs to be changed to remove c_text and replace it with the new_text
-        email = email[:index] + new_text + email[index + len(c_text) :]
-
-    """ Skip section"""
-    if skip > 0:
-        count = 0
-        while new_text in email:
-            if count == skip:
-                return email
-            email = email[:index] + c_text + email[index + len(c_text):]
-            count += 1
+        # Than email needs to be changed to remove c_text and replace it with the scrable_text
+        email = email[:index] + scrable_text + email[index + len(c_text) :]
 
     # Fianlly return the email after the while loop has found all occurances of c_text        
     return email
+
+def scrable(text):
+    # These letters are for generating random letters to replace the c_text that needs to be censor
+    letters = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '{', '}', '[', ']', '<',
+               '>', 'F', '7', 'U', '8', '9', 'K', '-', 'C']
+    # A variable to store the replacement for c_text
+    new_text = ""
+
+    # A for loop to iterate to the length of c_text
+    for i in range(len(text)):
+        # A letter is chosen at random each time the for loop is ran and added to new_text
+        new_text += random.choice(letters).upper()
+    
+    return new_text
 
 ''' This function is a helper method. (In other words don't worry about it ;)'''
 def my_func(e):
@@ -57,20 +54,20 @@ def my_func(e):
 
 ''' The following function censors a list of terms from the given text. paramters are the terms and
     the text that needs to be censored. And returns the new text.'''
-def censor_these(terms, email, skip = 0):
+def censor_these(terms, email):
     # Sorts the terms by size (Largest to smallest)
     terms.sort(reverse = True, key = my_func)
 
     # For every term
     for t in terms:
         # Run the censor_this() method on each word and set the result to email
-        email = censor_this(t, email, skip)
+        email = censor_this(t, email)
     
     return email
 
 ''' The following method is an extra one not part of the project. The method formats text and prints
     to the console.'''
-def print_eformat(email, line_cap = 100):
+def print_c_format(email, line_cap = 100):
     # Keeps track of the last index used to add a next-line
     used_index = 0
     # Keeps track of the last time a space was found
@@ -110,13 +107,51 @@ def print_eformat(email, line_cap = 100):
         count += 1
     print(email)
 
-def keep_it_down(terms, email, skip = 2):
-    return censor_these(terms, email, skip)
+''' The following method censors a list of given terms is they occure more than the skip amount in
+    the given email. '''
+def keep_these_down(terms, email, skip=2):
+    #  A list to store the scrabled version of each term
+    scrabled = []
 
+    # A for loop to go trough each term and store teh value of the screabled term
+    for x in terms:
+        scrabled.append(scrable(x))
 
+    # This list is going store every indavidual letter in the email
+    letters = []
+    # For loop to iterate through the email
+    for x in email:
+        letters.append(x)
 
-
-
+    # This list is going to store each word and each symbol in it's own index
+    words = []
+    # This varibale keeps track of the last used index
+    last_index = 0
+    # for loop that iterates through the length of the letters list
+    for x in range(len(letters)):
+        # If the current character isn't a letter
+        if not letters[x].isalpha():
+            # Than append all the leters in between the last_index and the current index
+            words.append(''.join(letters[last_index:x]))
+            # Also need to append the current index
+            words.append(letters[x])
+            # Update last_index
+            last_index = x + 1
+    
+    # Keeps tracks of matched wordcount
+    count = 0
+    # For loop to go through the length of the list words
+    for x in range(len(words)):
+        # If the current word matches one of the terms that needs to be censored
+        if words[x] in terms:
+            # Add one to the count
+            count += 1
+            # If the count is high than the amount that needs to be skipped
+            if count > skip:
+                # Than replace the current index with the scrabled word
+                words[x] = scrabled[terms.index(words[x])]
+    # Join all the varibles from words and return
+    return ''.join(words)
 
 """ TESTING """
 
@@ -132,11 +167,11 @@ print_eformat(new_email, 70)
 
 negative_words = ["concerned", "behind", "danger", "dangerous", "alarming", "alarmed", "out of control",
     "help", "unhappy", "bad", "upset", "awful", "broken", "damage", "damaging", "dismal", "distressed",
-    "distressed", "concerning", "horrible", "horribly", "questionable"]
+    "distressing", "concerning", "horrible", "horribly", "questionable"]
+
 email = censor_these(proprietary_terms, email_three)
-print_eformat(keep_it_down(negative_words, email), 50)
-
-
+print_c_format(keep_these_down(negative_words, email), 50)
+#keep_these_down(negative_words, email)
 
 
 
