@@ -8,6 +8,13 @@ email_two = open("email_two.txt", "r").read()
 email_three = open("email_three.txt", "r").read()
 email_four = open("email_four.txt", "r").read()
 
+proprietary_terms = ["she", "personality matrix", "sense of self",
+                     "self-preservation", "learning algorithm", "her", "herself"]
+
+negative_words = ["concerned", "behind", "danger", "dangerous", "alarming", "alarmed", "out of control",
+                  "help", "unhappy", "bad", "upset", "awful", "broken", "damage", "damaging", "dismal", "distressed",
+                  "distressing", "concerning", "horrible", "horribly", "questionable"]
+
 ''' The following method takes in two arguments. The first is the text that needs to be
     censored and the second being the email that needs censoring. Than returns the new text.'''
 def censor_this(c_text, email):
@@ -34,6 +41,7 @@ def censor_this(c_text, email):
     # Fianlly return the email after the while loop has found all occurances of c_text        
     return email
 
+''' The following method scrables what ever word is passed to it'''
 def scrable(text):
     # These letters are for generating random letters to replace the c_text that needs to be censor
     letters = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '{', '}', '[', ']', '<',
@@ -154,79 +162,112 @@ def line_spaceing(line, line_cap=100):
     return line
 
 
-''' The following method censors a list of given terms if they occure more than the skip amount in
-    the given email. '''
+''' The following method censors a list of the terms from the negative_words list and proprietary_terms
+    list if they occure more than the skip amount in the given email. '''
 def keep_it_down(email, skip=2):
-    # All the negitive words that need to keep it down!
-    negative_words = ["concerned", "behind", "danger", "dangerous", "alarming", "alarmed", "out of control",
-                      "help", "unhappy", "bad", "upset", "awful", "broken", "damage", "damaging", "dismal", "distressed",
-                      "distressing", "concerning", "horrible", "horribly", "questionable"]
+    scrable_this = negative_words + proprietary_terms
     #  A list to store the scrabled version of each term
-    scrabled = []
-    # A for loop to go trough each term and store teh value of the screabled term
-    for x in negative_words:
-        scrabled.append(scrable(x))
-    # This list is going store every indavidual letter in the email
-    letters = []
-    # For loop to iterate through the email
-    for x in email:
-        letters.append(x)
-    # This list is going to store each word and each symbol in it's own index
+    # To store all the words individually
     words = []
-    # This varibale keeps track of the last used index
-    last_index = 0
-    # for loop that iterates through the length of the letters list
-    for x in range(len(letters)):
-        # If the current character isn't a letter
-        if not letters[x].isalpha():
-            # Than append all the leters in between the last_index and the current index
-            words.append(''.join(letters[last_index:x]))
-            # Also need to append the current index
-            words.append(letters[x])
-            # Update last_index
-            last_index = x + 1
+    # Keeps count of last used index
+    count = 0
+    # Loop through each char in the email
+    for x in range(len(email)):
+        # In the case that the current index isn't a letter
+        if not email[x].isalpha():
+            # if the current count doesn't equal x
+            if count != x:
+                # Append the word
+                words.append(email[count:x])
+            # Append the single char
+            words.append(email[x])
+            # Update count
+            count = x + 1
     # Keeps tracks of matched wordcount
     count = 0
     # For loop to go through the length of the list words
     for x in range(len(words)):
         # If the current word matches one of the terms that needs to be censored
-        if words[x] in negative_words:
+        if words[x] in scrable_this:
             # Add one to the count
             count += 1
             # If the count is high than the amount that needs to be skipped
             if count > skip:
                 # Than replace the current index with the scrabled word
-                words[x] = scrabled[negative_words.index(words[x])]
+                words[x] = scrable(words[x])
     # Join all the varibles from words and return
     return ''.join(words)
 
+def censor_left_n_right(email):
+    # List of all the words that need to be scrabled
+    scrable_this = negative_words + proprietary_terms
+    # To store all the words individually
+    words = []
+    # Keeps count of last used index
+    count = 0
+    # Loop through each char in the email
+    for x in range(len(email)):
+        # In the case that the current index isn't a letter
+        if not email[x].isalpha():
+            # if the current count doesn't equal x
+            if count != x:
+                # Append the word
+                words.append(email[count:x])
+            # Append the single char
+            words.append(email[x])
+            # Update count
+            count = x + 1
+    # Loop through all the words
+    for x in range(len(words)):
+        # If a words matchs one in scrable_this
+        if words[x] in scrable_this:
+            # Than swap that word out for the scrabled version
+            words[x] = scrable(words[x])
+            if x > 0:
+                # Than loop through backwards from the current word till we find another word
+                for i in range(1, x):
+                    # If the length of the current index is over 1 than we found a word
+                    if len(words[x - i]) > 1:
+                        # Replace that index with the scrabled version
+                        words[x - i] = scrable(words[x - i])
+                        # Break for loop
+                        break
+                    else:
+                        # Still need to scrabled the spaces and random chars inbetween (just my opinion)
+                        words[x - i] = scrable(words[x - i])
+            if x < len(words):
+                # Loop through all the indexs after the current index
+                for i in range(1, len(words) - x):
+                    # When it finds a index with a length over 1 than it found a word
+                    if len(words[x + i]) > 1:
+                        # Replace that index with the crabled version
+                        words[x + i] = scrable(words[x + i])
+                        # break for loop
+                        break
+                    else:
+                        # Still need to scrabled the spaces and random chars inbetween (just my opinion)
+                        words[x + i] = scrable(words[x + i])
+    # return the words list join
+    return ''.join(words)
+    
+
+
+
 """ TESTING """
 
-proprietary_terms = ["she", "personality matrix", "sense of self",
-                     "self-preservation", "learning algorithm", "her", "herself"]
-
-'''print(censor_term("learning algorithms", email_one))
+'''
+print(censor_this("learning algorithms", email_one))
 
 
-new_email = cesor_this(proprietary_terms, email_two)
-print_eformat(new_email, 70)
-#print_eformat(email_two, 70) '''
+new_email = censor_these(proprietary_terms, email_two)
+print_n_format(new_email, 70)
+print_n_format(email_two, 70)
 
-#email = censor_these(proprietary_terms, email_three)
-#print_n_format(keep_it_down(email_one), 70)
-#print_n_format(keep_it_down(email_two), 70)
-#print_n_format(keep_it_down(email_three), 70)
+email = censor_these(proprietary_terms, email_three)
+print_n_format(keep_it_down(email_one), 70)
+print_n_format(keep_it_down(email_two), 70)
+print_n_format(keep_it_down(email_three), 70)'''
 #print_n_format(keep_it_down(email_four), 70)
-#keep_these_down(negative_words, email)
-'''line = ''
-for x in range(95):
-    if x % 4 == 1:
-        line += ' '
-    else:
-        line += 'x'
-
-print("%d: %s" % (len(line), line))
-
-line = line_spaceing(line)
-
-print("%d: %s" % (len(line), line))'''
+#keep_it_down(email)
+print_n_format(censor_left_n_right(email_four), 70)
+print_n_format(email_four, 70)
