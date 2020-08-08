@@ -57,72 +57,120 @@ def my_func(e):
 def censor_these(terms, email):
     # Sorts the terms by size (Largest to smallest)
     terms.sort(reverse = True, key = my_func)
-
     # For every term
     for t in terms:
         # Run the censor_this() method on each word and set the result to email
         email = censor_this(t, email)
-    
     return email
 
-''' The following method is an extra one not part of the project. The method formats text and prints
+''' The following method is an extra method not part of the OG project. The method indents paragraphs,
+    line spaces and prints
     to the console.'''
-def print_c_format(email, line_cap = 100):
-    # Keeps track of the last index used to add a next-line
-    used_index = 0
-    # Keeps track of the last time a space was found
-    last_space = -1
-    # Keeps track of the count for the line
-    line_count = 0
-    # Keeps track of the index we are currently on in the for loop
-    count = 0
-    # The for loop goes through each index in the email's text
-    for x in email:
-        # Checks if the line_cap is meet
-        if line_count > line_cap:
-            # Cheks if a space was found in the last line or not
-            if last_space >= used_index:
-                # Adds a next-line and removes the extra space so it doesn't look weird
-                email = email[:last_space] + "\n" + email[last_space + 1:]
-                # Adjest variables for the next line of text
-                #count += 1
-                used_index == last_space
-                line_count = 0
-            else:
-                # This is the scenario where a new space was not found on the next line
-                # POTENTIAL BUG: might cut off an extra letter when it shouldn't
-                email = email[:line_count] + "\n" + email[line_count:]
-                # Adjest variables for the next line of text
-                count += 1
-                used_index == last_space
-                line_count = 0
+def print_n_format(email, line_cap=100):
+    # Stores the text after '\n' is added to appropriate spots to sperate each line
+    done = ""
+    # Stores what is currently being checked
+    checking = ""
+    # Keeps tracks of up to what index has been sorted through
+    c_count = 0
+    # This while loop needs to continue as long as c_count hasn't meet the length of email
+    while c_count < len(email):
+        # If theirs more than line_cap(default value is 100) characters left to check
+        if len(email) - c_count > line_cap:
+            # Than add the next line_cap (100 or the value passed into the method) characters to
+            # be checked
+            checking = email[c_count: c_count + line_cap]
+            # Add the value of line_cap to c_count
+            c_count += line_cap
+        # Other wise that means ther's less than line_cap characters left to check
         else:
-            # if line cap isn't meet than check if the current idex is a space
-            if x == " ":
-                last_space = count
-            elif '\n' in x:
-                # Since a next-line was found before we meet the line_cap we need to reset line_count
-                line_count = 0
-        line_count += 1 
-        count += 1
-    print(email)
+            # Set checking equal to the remainding characters
+            checking = email[c_count:]
+            # Up date c_count to match the correct index
+            c_count += len(email) - c_count
+        # The following loop runs until checking is empty 
+        while checking != "":
+            # If there's a '\n' in checking
+            if '\n' in checking:
+                # Than we need to find last '\n' that occured
+                # Loop throuh checking backwards one char at a time
+                for x in range(len(checking) - 1, 0, -1):
+                    # If the current index matches '\n'
+                    if checking[x] == '\n':
+                        # Than add all the chars up to and including the '\n'
+                        done += checking[: x + 1]
+                        # Update c_count, Reset checking, Break for loop
+                        c_count -= len(checking[x + 1 :])
+                        checking = ""
+                        break
+            # Since in this case there isn't a '\n'
+            else:
+                # Loop through each char backwards one at a time
+                for x in range(len(checking) - 1, 0, -1):
+                    # Until we find the last space that occured
+                    if checking[x] == " ":
+                        # Add everything up to that space to done and add '\n' as well
+                        done += checking[:x] + "\n"
+                        # Update c_count, Update checking and break loop
+                        c_count -= len(checking[x+1:])
+                        checking = ""
+                        break
+    
+    # New list to store each line of the text
+    lines = done.split('\n')
+    # Loop through each line
+    for n in range(len(lines)):
+        # If the line is long enough than it needs to be spaced out to the line_cap
+        if len(lines[n]) > line_cap - 7:
+            # Run the helper method and set the current index to the new value
+            lines[n] = line_spaceing(lines[n], line_cap)
+    # Set output to lines joined by '\n'
+    output = '\n'.join(lines)
+    # Print output to console
+    print('\n'.join(lines))
+    # Also return output in case it needs to be stored to a new variable out side this method or idk
+    return output
 
-''' The following method censors a list of given terms is they occure more than the skip amount in
+''' The following method spaces out a given line to the given legth or the defult line_cap. (helper
+    method to c_format)'''
+def line_spaceing(line, line_cap=100):
+    # A count of the amount of space that need to be added
+    needed = line_cap - len(line)
+    # A list to store the index of each space in the line
+    space_list = []
+    # For loop to iterate through the length of the given line
+    for x in range(len(line)):
+        # If a space was found
+        if line[x] == ' ':
+            # Than the index is added to space_list 
+            space_list.append(x)
+    # A for loop to iterate to the length of needed
+    for n in range(1 ,needed):
+        # At the begining of each iteration find the right index to add a space at
+        index = int(len(space_list) / needed * n)
+        index = space_list[index] + n
+        # Add a space at the index 
+        line = line[:index] + ' ' + line[index:]
+    return line
+
+
+''' The following method censors a list of given terms if they occure more than the skip amount in
     the given email. '''
-def keep_these_down(terms, email, skip=2):
+def keep_it_down(email, skip=2):
+    # All the negitive words that need to keep it down!
+    negative_words = ["concerned", "behind", "danger", "dangerous", "alarming", "alarmed", "out of control",
+                      "help", "unhappy", "bad", "upset", "awful", "broken", "damage", "damaging", "dismal", "distressed",
+                      "distressing", "concerning", "horrible", "horribly", "questionable"]
     #  A list to store the scrabled version of each term
     scrabled = []
-
     # A for loop to go trough each term and store teh value of the screabled term
-    for x in terms:
+    for x in negative_words:
         scrabled.append(scrable(x))
-
     # This list is going store every indavidual letter in the email
     letters = []
     # For loop to iterate through the email
     for x in email:
         letters.append(x)
-
     # This list is going to store each word and each symbol in it's own index
     words = []
     # This varibale keeps track of the last used index
@@ -137,19 +185,18 @@ def keep_these_down(terms, email, skip=2):
             words.append(letters[x])
             # Update last_index
             last_index = x + 1
-    
     # Keeps tracks of matched wordcount
     count = 0
     # For loop to go through the length of the list words
     for x in range(len(words)):
         # If the current word matches one of the terms that needs to be censored
-        if words[x] in terms:
+        if words[x] in negative_words:
             # Add one to the count
             count += 1
             # If the count is high than the amount that needs to be skipped
             if count > skip:
                 # Than replace the current index with the scrabled word
-                words[x] = scrabled[terms.index(words[x])]
+                words[x] = scrabled[negative_words.index(words[x])]
     # Join all the varibles from words and return
     return ''.join(words)
 
@@ -165,17 +212,21 @@ new_email = cesor_this(proprietary_terms, email_two)
 print_eformat(new_email, 70)
 #print_eformat(email_two, 70) '''
 
-negative_words = ["concerned", "behind", "danger", "dangerous", "alarming", "alarmed", "out of control",
-    "help", "unhappy", "bad", "upset", "awful", "broken", "damage", "damaging", "dismal", "distressed",
-    "distressing", "concerning", "horrible", "horribly", "questionable"]
-
-email = censor_these(proprietary_terms, email_three)
-print_c_format(keep_these_down(negative_words, email), 50)
+#email = censor_these(proprietary_terms, email_three)
+#print_n_format(keep_it_down(email_one), 70)
+#print_n_format(keep_it_down(email_two), 70)
+#print_n_format(keep_it_down(email_three), 70)
+#print_n_format(keep_it_down(email_four), 70)
 #keep_these_down(negative_words, email)
+'''line = ''
+for x in range(95):
+    if x % 4 == 1:
+        line += ' '
+    else:
+        line += 'x'
 
+print("%d: %s" % (len(line), line))
 
+line = line_spaceing(line)
 
-
-
-
-
+print("%d: %s" % (len(line), line))'''
